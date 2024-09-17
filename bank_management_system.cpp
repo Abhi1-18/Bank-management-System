@@ -1,4 +1,5 @@
 #include<iostream>
+#include<fstream>
 #include<algorithm>
 #include<vector>
 using namespace std;
@@ -8,11 +9,25 @@ class Account{
         long long accountNumber;
         double  balance;
         string accountHolderName;
-    public:// creating a constructor
+    public:
+         // creating a constructor
         Account(int accNum, string name , double initialBalance){
             accountNumber = accNum;
             accountHolderName = name;
             balance = initialBalance;
+        }
+        //saving information to a file 
+        void saveToFile(ofstream &outFile){
+            outFile << accountNumber <<endl;
+            outFile << accountHolderName <<endl;
+            outFile << balance <<endl;
+        }
+        //load account data from the file 
+        void loadAccountData(ifstream &inFile){
+            inFile >> accountNumber;
+            inFile.ignore();
+            getline(inFile,accountHolderName);
+            inFile>>balance;
         }
         //accesing the accountNumber from the private specifier
         int getAccountNumber(){
@@ -53,9 +68,49 @@ int findAccount(vector<Account>& accounts , int accountNumber){
     }
     return -1;
 }
+//deleting account
+void deleteAccountNumber(vector<Account> &account , long long accountNumber){
+    int index = findAccount(account,accountNumber);
+    if(index!=-1){
+        account.erase(account.begin()+index);
+        cout<<"The deletion of the account number "<<accountNumber<<" is successfully completed "<<endl;
+    }else{
+        cout<<"Account number not found!"<<endl;
+    }
+}
+//saving data
+void saveAccountsToFile(vector<Account>&accounts){
+    ofstream outFile("account.txt");
+    for(int i=0;i<accounts.size();i++){
+        accounts[i].saveToFile(outFile);
+    }
+    outFile.close();
+}
+//loading file
+void loadAccountsFromFile(vector<Account> &accounts) {
+    ifstream inFile("account.txt");
+
+    if (!inFile) {
+        cout << "No previous account data found.\n";
+        return;
+    }
+
+    while (!inFile.eof()) {
+        Account acc(0, "", 0.0);  // Temporary account object
+        acc.loadAccountData(inFile);
+        if (inFile) {
+            accounts.push_back(acc);
+        }
+    }
+
+    inFile.close();
+}
+
 int main(){
     // vector for keeping multiple accounts
     vector<Account>accounts;
+
+    loadAccountsFromFile(accounts);//loading file
 
     int ch;
     string accountHolderName;
@@ -69,7 +124,8 @@ int main(){
     cout<<" 2). View Account details "<<endl;
     cout<<" 3). Deposit  "<<endl;
     cout<<" 4). Withdraw "<<endl;
-    cout<<" 5). Exit  "<<endl;
+    cout<<" 5). Delete account "<<endl;
+    cout<<" 6). Exit  "<<endl;
     cout<<endl<<"Enter choice : ";
     cin>>ch;
 
@@ -124,7 +180,15 @@ int main(){
                 cout<<"Account not found !!"<<endl;
             }
             break;}
+
         case 5:
+            cout<<"Enter the account Number ";
+            cin>>accountNumber;
+            deleteAccountNumber(accounts,accountNumber);
+            saveAccountsToFile(accounts);
+            break;
+        case 6:
+        saveAccountsToFile(accounts);
             cout<<"Existing the system have a pleasant day !!"<<endl;
             break;
         default :
